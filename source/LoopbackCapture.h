@@ -1,156 +1,101 @@
+#pragma once
+
 /*
- * CLoopbackCaptureÀàÊµÏÖÏµÍ³ÒôÆµ»·»Ø²¶»ñ¹¦ÄÜ£¬¿É½«ÏµÍ³ÒôÆµ»òÖ¸¶¨½ø³ÌµÄÒôÆµÊä³ö²¶»ñµ½WAVÎÄ¼ş¡£
- * Ö÷Òª¹¦ÄÜ£º
- *   - È«¾ÖÒôÆµ²¶»ñ£º²¶»ñËùÓĞÏµÍ³ÒôÆµÊä³ö
- *   - ½ø³ÌÌØ¶¨²¶»ñ£º²¶»ñÖ¸¶¨½ø³Ì(¼°Æä×Ó½ø³Ì)µÄÒôÆµÊä³ö
- *   - Òì²½²Ù×÷£ºÍ¨¹ıMedia FoundationÒì²½½Ó¿ÚÊµÏÖ·Ç×èÈûÊ½ÒôÆµ²¶»ñ
- *   - ¶àÏß³Ì´¦Àí£ºÊ¹ÓÃ¶ÀÁ¢Ïß³Ì´¦ÀíÒôÆµÊı¾İĞ´Èë£¬±ÜÃâ×èÈû²¶»ñÏß³Ì
- *
- * ÊµÏÖË¼Â·£º
- *   1. ³õÊ¼»¯½×¶Î£º¼¤»îÒôÆµ½Ó¿Ú£¬»ñÈ¡IAudioClientºÍIAudioCaptureClient
- *   2. ×¼±¸½×¶Î£ºÉèÖÃÒôÆµ¸ñÊ½£¬´´½¨WAVÎÄ¼şÍ·
- *   3. ²¶»ñ½×¶Î£ºÆô¶¯ÒôÆµ²¶»ñ£¬Í¨¹ıÒì²½»Øµ÷´¦Àí¾ÍĞ÷µÄÒôÆµÑù±¾
- *   4. Ğ´Èë½×¶Î£º½«²¶»ñµÄÒôÆµÊı¾İ·ÅÈë¶ÓÁĞ£¬ÓÉ×¨ÃÅÏß³ÌĞ´ÈëÎÄ¼ş
- *   5. Í£Ö¹½×¶Î£ºÍ£Ö¹²¶»ñ£¬ĞŞ¸´WAVÎÄ¼şÍ·£¬ÊÍ·Å×ÊÔ´
- *
- * Ê¹ÓÃµ½µÄ¼¼Êõ/¿â£º
- *   - Windows Core Audio API (AudioClient.h, mmdeviceapi.h)
- *   - Media Foundation API (mfapi.h)
- *   - Windows Implementation Library (WIL) - ¼ò»¯COMºÍ×ÊÔ´¹ÜÀí
- *   - C++±ê×¼Ïß³ÌºÍÍ¬²½Ô­Óï
- *
- * ÌØ±ğ×¢Òâ£º
- *   - Ê¹ÓÃCOM×é¼ş£¬ĞèÒªÕıÈ·¹ÜÀíÒıÓÃ¼ÆÊı
- *   - ¶àÏß³Ì»·¾³ÏÂĞèÒª½÷É÷´¦ÀíÍ¬²½
- *   - WAVÎÄ¼şÍ·ĞèÒªÔÚ²¶»ñÍê³ÉºóĞŞÕı£¬ÒÔĞ´ÈëÕıÈ·µÄÊı¾İ´óĞ¡
- */
+ Combined original LoopbackCapture.h with callback additions
+*/
 
-#pragma once  // ·ÀÖ¹Í·ÎÄ¼şÖØ¸´°üº¬
+#include <AudioClient.h>
+#include <mmdeviceapi.h>
+#include <initguid.h>
+#include <guiddef.h>
+#include <mfapi.h>
 
- // WindowsÒôÆµÏà¹ØÍ·ÎÄ¼ş
-#include <AudioClient.h>    // ÒôÆµ¿Í»§¶Ë½Ó¿Ú
-#include <mmdeviceapi.h>    // ¶àÃ½ÌåÉè±¸API
-#include <initguid.h>       // ³õÊ¼»¯GUID¶¨Òå
-#include <guiddef.h>        // GUID¶¨Òå
-#include <mfapi.h>          // Media Foundation API
+#include <wrl\implements.h>
+#include <wil\com.h>
+#include <wil\result.h>
 
-// WIL¿â - Windows Implementation Library£¬¼ò»¯COMºÍ×ÊÔ´¹ÜÀí
-#include <wrl\implements.h> // COMÊµÏÖ¸¨Öú
-#include <wil\com.h>        // COMÖÇÄÜÖ¸Õë
-#include <wil\result.h>     // ´íÎó´¦Àí
-
-// ÏîÄ¿Í¨ÓÃÍ·ÎÄ¼ş
 #include "Common.h"
 
-// C++±ê×¼¿â
-#include <thread>            // Ïß³ÌÖ§³Ö
-#include <vector>            // ¶¯Ì¬Êı×é
-#include <queue>             // ¶ÓÁĞÈİÆ÷
-#include <mutex>             // »¥³âËø
-#include <condition_variable> // Ìõ¼ş±äÁ¿
-#include <atomic>            // Ô­×Ó²Ù×÷
+#include <thread>
+#include <vector>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
+#include <cstdint>
 
-using namespace Microsoft::WRL;  // Ê¹ÓÃWRLÃüÃû¿Õ¼ä
+using namespace Microsoft::WRL;
 
-// CLoopbackCaptureÀàÉùÃ÷
-// ¼Ì³Ğ×ÔRuntimeClass£¨Ìá¹©COMÖ§³Ö£©¡¢FtmBase£¨Ö§³Ö×ÔÓÉÏß³Ì·âËÍ£©ºÍIActivateAudioInterfaceCompletionHandler£¨ÒôÆµ½Ó¿Ú¼¤»îÍê³É»Øµ÷£©
+// å›è°ƒç±»å‹ï¼ˆ__stdcallï¼‰
+typedef void (CALLBACK *pcm_callback_t)(const uint8_t* data, int bytes, void* user_data);
+
 class CLoopbackCapture :
  public RuntimeClass< RuntimeClassFlags< ClassicCom >, FtmBase, IActivateAudioInterfaceCompletionHandler >
 {
 public:
- CLoopbackCapture();   // ¹¹Ôìº¯Êı
- ~CLoopbackCapture();  // Îö¹¹º¯Êı
+ CLoopbackCapture();
+ ~CLoopbackCapture();
 
- // »ñÈ¡Í£Ö¹ÊÂ¼ş¾ä±ú£¬ÓÃÓÚÍâ²¿µÈ´ı²¶»ñÍ£Ö¹
  HANDLE GetStopEventHandle() { return m_hCaptureStopped.get(); }
 
- // ¿ªÊ¼È«¾ÖÒôÆµ²¶»ñ£¨²¶»ñËùÓĞÏµÍ³ÒôÆµ£©
  HRESULT StartGlobalCaptureAsync(PCWSTR outputFileName);
-
- // ¿ªÊ¼½ø³ÌÌØ¶¨ÒôÆµ²¶»ñ
  HRESULT StartCaptureAsync(DWORD processId, bool includeProcessTree, PCWSTR outputFileName);
+ HRESULT StartCaptureWithCallback(DWORD processId, bool includeProcessTree, pcm_callback_t callback, void* user_data, UINT32 requestedSampleRate = 44100);
 
- // Í£Ö¹ÒôÆµ²¶»ñ
  HRESULT StopCaptureAsync();
 
- // Ê¹ÓÃºêÉú³ÉÒì²½»Øµ÷ÊµÏÖ
  METHODASYNCCALLBACK(CLoopbackCapture, StartCapture, OnStartCapture);
  METHODASYNCCALLBACK(CLoopbackCapture, StopCapture, OnStopCapture);
  METHODASYNCCALLBACK(CLoopbackCapture, SampleReady, OnSampleReady);
 
- // IActivateAudioInterfaceCompletionHandler½Ó¿Ú·½·¨
- // ÒôÆµ½Ó¿Ú¼¤»îÍê³ÉÊ±µ÷ÓÃ
  STDMETHOD(ActivateCompleted)(IActivateAudioInterfaceAsyncOperation* operation);
 
 private:
- // Éè±¸×´Ì¬Ã¶¾Ù
- enum class DeviceState
- {
-  Uninitialized,  // Î´³õÊ¼»¯
-  Error,          // ´íÎó×´Ì¬
-  Initialized,    // ÒÑ³õÊ¼»¯
-  Starting,       // ÕıÔÚÆô¶¯
-  Capturing,      // ÕıÔÚ²¶»ñ
-  Stopping,       // ÕıÔÚÍ£Ö¹
-  Stopped,        // ÒÑÍ£Ö¹
- };
+ enum class DeviceState { Uninitialized, Error, Initialized, Starting, Capturing, Stopping, Stopped };
 
- // Òì²½»Øµ÷´¦Àíº¯Êı
- HRESULT OnStartCapture(IMFAsyncResult* pResult);  // ¿ªÊ¼²¶»ñ»Øµ÷
- HRESULT OnStopCapture(IMFAsyncResult* pResult);   // Í£Ö¹²¶»ñ»Øµ÷
- HRESULT OnSampleReady(IMFAsyncResult* pResult);   // Ñù±¾¾ÍĞ÷»Øµ÷
+ HRESULT OnStartCapture(IMFAsyncResult* pResult);
+ HRESULT OnStopCapture(IMFAsyncResult* pResult);
+ HRESULT OnSampleReady(IMFAsyncResult* pResult);
 
- // ³õÊ¼»¯»·»Ø²¶»ñ
  HRESULT InitializeLoopbackCapture();
-
- // ´´½¨WAVÎÄ¼ş²¢Ğ´ÈëÎÄ¼şÍ·
  HRESULT CreateWAVFile();
-
- // ĞŞ¸´WAVÎÄ¼şÍ·£¨ÔÚ²¶»ñÍê³ÉºóĞ´ÈëÕıÈ·µÄÊı¾İ´óĞ¡£©
  HRESULT FixWAVHeader();
-
- // ´¦ÀíÒôÆµÑù±¾ÇëÇó
  HRESULT OnAudioSampleRequested();
-
- // ¼¤»îÖ¸¶¨½ø³ÌµÄÒôÆµ½Ó¿Ú
  HRESULT ActivateAudioInterface(DWORD processId, bool includeProcessTree);
-
- // Èç¹û²Ù×÷Ê§°ÜÔòÉèÖÃÉè±¸×´Ì¬Îª´íÎó
  HRESULT SetDeviceStateErrorIfFailed(HRESULT hr);
-
- // ¼¤»îÈ«¾ÖÒôÆµ½Ó¿Ú
  HRESULT ActivateAudioInterfaceGlobal();
-
- // Ğ´ÈëÏß³Ì´¦Àíº¯Êı
  void WriterThreadProc();
 
- // ³ÉÔ±±äÁ¿
+ // members
+ wil::com_ptr_nothrow<IAudioClient> m_AudioClient;
+ WAVEFORMATEX m_CaptureFormat{};
+ UINT32 m_BufferFrames = 0;
+ wil::com_ptr_nothrow<IAudioCaptureClient> m_AudioCaptureClient;
+ wil::com_ptr_nothrow<IMFAsyncResult> m_SampleReadyAsyncResult;
 
- wil::com_ptr_nothrow<IAudioClient> m_AudioClient;        // ÒôÆµ¿Í»§¶Ë½Ó¿Ú
- WAVEFORMATEX m_CaptureFormat{};                         // ²¶»ñµÄÒôÆµ¸ñÊ½
- UINT32 m_BufferFrames = 0;                              // »º³åÇøÖ¡Êı
- wil::com_ptr_nothrow<IAudioCaptureClient> m_AudioCaptureClient;  // ÒôÆµ²¶»ñ¿Í»§¶Ë½Ó¿Ú
- wil::com_ptr_nothrow<IMFAsyncResult> m_SampleReadyAsyncResult;   // Ñù±¾¾ÍĞ÷Òì²½½á¹û
+ wil::unique_event_nothrow m_SampleReadyEvent;
+ MFWORKITEM_KEY m_SampleReadyKey = 0;
+ wil::unique_hfile m_hFile;
+ wil::critical_section m_CritSec;
+ DWORD m_dwQueueID = 0;
+ DWORD m_cbHeaderSize = 0;
+ DWORD m_cbDataSize = 0;
 
- wil::unique_event_nothrow m_SampleReadyEvent;           // Ñù±¾¾ÍĞ÷ÊÂ¼ş
- MFWORKITEM_KEY m_SampleReadyKey = 0;                    // Media Foundation¹¤×÷Ïî¼ü
- wil::unique_hfile m_hFile;                              // Êä³öÎÄ¼ş¾ä±ú
- wil::critical_section m_CritSec;                        // ÁÙ½çÇø£¬ÓÃÓÚÍ¬²½
- DWORD m_dwQueueID = 0;                                  // Òì²½¶ÓÁĞID
- DWORD m_cbHeaderSize = 0;                               // WAVÎÄ¼şÍ·´óĞ¡
- DWORD m_cbDataSize = 0;                                 // ÒôÆµÊı¾İ´óĞ¡
+ PCWSTR m_outputFileName = nullptr;
+ HRESULT m_activateResult = E_UNEXPECTED;
 
- PCWSTR m_outputFileName = nullptr;                      // Êä³öÎÄ¼şÃû
- HRESULT m_activateResult = E_UNEXPECTED;                // ¼¤»î²Ù×÷½á¹û
+ DeviceState m_DeviceState{ DeviceState::Uninitialized };
+ wil::unique_event_nothrow m_hActivateCompleted;
+ wil::unique_event_nothrow m_hCaptureStopped;
 
- DeviceState m_DeviceState{ DeviceState::Uninitialized }; // µ±Ç°Éè±¸×´Ì¬
- wil::unique_event_nothrow m_hActivateCompleted;         // ¼¤»îÍê³ÉÊÂ¼ş
- wil::unique_event_nothrow m_hCaptureStopped;            // ²¶»ñÍ£Ö¹ÊÂ¼ş
+ std::thread m_WriterThread;
+ std::queue<std::vector<BYTE>> m_AudioQueue;
+ std::mutex m_QueueMutex;
+ std::condition_variable m_QueueCV;
+ std::atomic<bool> m_bIsCapturing;
+ std::atomic<HRESULT> m_writerThreadResult;
 
- std::thread m_WriterThread;                             // ÒôÆµÊı¾İĞ´ÈëÏß³Ì
- std::queue<std::vector<BYTE>> m_AudioQueue;             // ÒôÆµÊı¾İ¶ÓÁĞ
- std::mutex m_QueueMutex;                                // ¶ÓÁĞ»¥³âËø
- std::condition_variable m_QueueCV;                      // ¶ÓÁĞÌõ¼ş±äÁ¿
- std::atomic<bool> m_bIsCapturing;                       // ²¶»ñ×´Ì¬±êÖ¾£¨Ô­×Ó²Ù×÷£©
- std::atomic<HRESULT> m_writerThreadResult;              // Ğ´ÈëÏß³Ì½á¹û£¨Ô­×Ó²Ù×÷£©
+ // callback members
+ pcm_callback_t m_userCallback = nullptr;
+ void* m_userData = nullptr;
 };

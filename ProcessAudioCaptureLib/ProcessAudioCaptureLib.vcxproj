@@ -65,12 +65,12 @@
 
   <ItemGroup>
     <ClInclude Include="AudioCaptureDLL.h" />
-    <ClInclude Include="LoopbackCapture.h" />
+    <ClInclude Include="..\source\LoopbackCapture.h" />
   </ItemGroup>
 
   <ItemGroup>
     <ClCompile Include="AudioCaptureDLL.cpp" />
-    <ClCompile Include="LoopbackCapture.cpp" />
+    <ClCompile Include="..\source\LoopbackCapture.cpp" />
   </ItemGroup>
 
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
